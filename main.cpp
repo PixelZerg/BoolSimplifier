@@ -1,6 +1,8 @@
 #include <iostream>
+#include "simplifier.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    Variable a = Variable("hello");
+    std::cout << a << std::endl;
     return 0;
 }
