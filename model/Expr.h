@@ -4,21 +4,6 @@
 #include <string>
 #include "Symbol.h"
 
-enum ExprType{
-    OR,
-    AND,
-    NOT,
-};
-static const char* ExprTypeStrs[] = {"OR","AND","NOT"};
-
-enum NotationStyle{
-    DEFAULT,
-    CSTYLE,
-    WRITTEN,
-    MATHEMATICAL,
-    //maybe impl latex
-};
-
 class Expr:public Symbol {
 public:
     ExprType type;
@@ -32,8 +17,9 @@ public:
             std::string sym_and,
             std::string sym_lbrac,
             std::string sym_rbrac,
-            bool wrap
-    );
+            bool wrap,
+            ExprType parentType
+    ) override;
     std::string render(NotationStyle format);
 };
 
