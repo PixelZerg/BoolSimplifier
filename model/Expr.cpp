@@ -56,9 +56,11 @@ std::string Expr::render(
 
     switch(this->type){
         case ExprType::AND:
-            sym = std::move(sym_and);
+            sym = sym_and;
+            break;
         case ExprType::OR:
-            sym = std::move(sym_or);
+            sym = sym_or;
+            break;
         case NOT:break;
         case NONE: break;
     }
@@ -77,7 +79,7 @@ std::string Expr::render(
                 sym_and,
                 sym_lbrac,
                 sym_rbrac,
-                true,
+                true, //todo simplify (this arg may be redundant)
                 this->type
         );
 

@@ -22,5 +22,5 @@ int main() {
 //    std::cout << ((Symbol)a).render() << std::endl;
 //    a.value = false;
 
-    std::cout << e << std::endl;
+    std::cout << e.render(NotationStyle::CSTYLE) << std::endl;
 }
