@@ -4,9 +4,7 @@
 #include "model/Constant.h"
 
 int main() {
-//    auto* const1 = new Constant(true);
-//    auto* a = new Variable("A");
-//    Expr e = Expr(ExprType::OR,{const1,a});
+    //fixme fix memory leaks
       Expr e = Expr(ExprType::NOT,{
               new Expr(ExprType::OR,{
                   new Variable("A"),
@@ -17,10 +15,43 @@ int main() {
                   })
               })
       });
+    std::cout << e.render(NotationStyle::CSTYLE) << std::endl;
 
-//    std::cout << ((Symbol)a).render("","","","","",false) << std::endl;
-//    std::cout << ((Symbol)a).render() << std::endl;
-//    a.value = false;
+    e = Expr(ExprType::OR,{
+            new Variable("C"),
+            new Expr(ExprType::NOT,{
+                    new Expr(ExprType::AND,{
+                            new Variable("B"),
+                            new Variable("C")
+                    })
+            })
+    });
+    std::cout << e.render(NotationStyle::CSTYLE) << std::endl;
 
+    e = Expr(ExprType::NOT,{
+            new Constant(true),
+    });
+    std::cout << e.render(NotationStyle::CSTYLE) << std::endl;
+
+    e = Expr(AND,{
+            new Expr(NOT,{
+                    new Expr(AND,{
+                            new Variable("A"),
+                            new Variable("B")
+                    })
+            }),
+            new Expr(OR,{
+                    new Expr(NOT,{
+                            new Variable("A")
+                    }),
+                    new Variable("B")
+            }),
+            new Expr(OR,{
+                    new Expr(NOT,{
+                            new Variable("B")
+                    }),
+                    new Variable("B")
+            })
+    });
     std::cout << e.render(NotationStyle::CSTYLE) << std::endl;
 }

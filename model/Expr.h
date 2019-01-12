@@ -2,6 +2,7 @@
 #define BOOLSIMPLIFIER_EXPR_H
 #include <list>
 #include <string>
+#include <array>
 #include "Symbol.h"
 
 class Expr:public Symbol {
@@ -10,17 +11,17 @@ public:
     std::list<Symbol*> inputs;
 
     Expr(ExprType type, std::list<Symbol*> inputs);
+    ~Expr() override;
+
     std::string render() override;
-    std::string render(
-            std::string sym_not,
-            std::string sym_or,
-            std::string sym_and,
-            std::string sym_lbrac,
-            std::string sym_rbrac,
-            bool wrap,
-            ExprType parentType
-    ) override;
     std::string render(NotationStyle format);
+    std::string
+    render(const std::string &sym_not,
+           const std::string &sym_or,
+           const std::string &sym_and,
+           const std::string &sym_lbrac,
+           const std::string &sym_rbrac,
+           const ExprType &parentType) override;
 };
 
 

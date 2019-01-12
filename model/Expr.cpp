@@ -1,7 +1,4 @@
 #include "Expr.h"
-#include <stdexcept>
-#include <utility>
-
 
 Expr::Expr(ExprType type, std::list<Symbol*> inputs) {
     this->type = type;
@@ -31,19 +28,22 @@ Expr::Expr(ExprType type, std::list<Symbol*> inputs) {
     }
 }
 
+Expr::~Expr() {
+    inputs.clear();
+}
+
 
 /*
  * Render into a human-readable string format.
  * NB: wrap and parentType are for internal use - needed for brackets optimisation
  */
-std::string Expr::render(
-        std::string sym_not,
-        std::string sym_or,
-        std::string sym_and,
-        std::string sym_lbrac = "(",
-        std::string sym_rbrac = ")",
-        bool wrap = false,
-        ExprType parentType = ExprType::NONE) {
+std::string Expr::render( // NOLINT
+        const std::string &sym_not,
+        const std::string &sym_or,
+        const std::string &sym_and,
+        const std::string &sym_lbrac = "(",
+        const std::string &sym_rbrac = ")",
+        const ExprType &parentType = ExprType::NONE) {
     std::string rend;
 
     // NOT prefix
@@ -79,7 +79,6 @@ std::string Expr::render(
                 sym_and,
                 sym_lbrac,
                 sym_rbrac,
-                true, //todo simplify (this arg may be redundant)
                 this->type
         );
 
@@ -90,10 +89,11 @@ std::string Expr::render(
         i++;
     }
 
-    if(this->type == parentType && wrap || parentType == ExprType::NOT){
-        return sym_lbrac + rend + sym_rbrac;
-    }else{
+    if(this->type > parentType){
+        // this' precedence greater than parent's = no need to wrap
         return rend;
+    }else{
+        return sym_lbrac + rend + sym_rbrac;
     }
 
 }

@@ -3,10 +3,12 @@
 #include <string>
 
 enum ExprType{
-    NONE,
-    OR,
-    AND,
-    NOT,
+    // order of precedence (highest last)
+    NONE = -1,
+    OR = 0,
+    AND = 2,
+    NOT = 3,
+
 };
 static const char* ExprTypeStrs[] = {"NONE","OR","AND","NOT"};
 
@@ -22,15 +24,13 @@ class Symbol {
 public:
     virtual ~Symbol();
     virtual std::string render();
-    virtual std::string render(
-            std::string sym_not,
-            std::string sym_or,
-            std::string sym_and,
-            std::string sym_lbrac,
-            std::string sym_rbrac,
-            bool wrap,
-            ExprType parentType
-    );
+    virtual std::string
+    render(const std::string &sym_not,
+           const std::string &sym_or,
+           const std::string &sym_and,
+           const std::string &sym_lbrac,
+           const std::string &sym_rbrac,
+           const ExprType &parentType);
 
     friend std::ostream & operator<<(std::ostream &stream, Symbol &v);
 };

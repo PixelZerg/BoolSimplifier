@@ -11,12 +11,11 @@ std::string Symbol::render() {
     throw std::logic_error("render() not implemented");
 }
 
-std::string Symbol::render(std::string sym_not,
-                           std::string sym_or,
-                           std::string sym_and,
-                           std::string sym_lbrac,
-                           std::string sym_rbrac,
-                           bool wrap,
-                           ExprType parentType) {
+std::string Symbol::render(const std::string &sym_not,
+                           const std::string &sym_or,
+                           const std::string &sym_and,
+                           const std::string &sym_lbrac,
+                           const std::string &sym_rbrac,
+                           const ExprType &parentType) {
     return render();
 }
