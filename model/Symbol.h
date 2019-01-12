@@ -4,7 +4,7 @@
 
 class Symbol {
 public:
-    virtual std::string render() = 0;
+    virtual std::string render();
     friend std::ostream & operator<<(std::ostream &stream, Symbol &v);
 };
 
