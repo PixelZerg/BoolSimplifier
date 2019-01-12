@@ -1,8 +1,4 @@
-#include "simplifier.h"
-
-std::ostream &operator<<(std::ostream &stream, Symbol &v) {
-    return stream << v.render();
-}
+#include "Variable.h"
 
 Variable::Variable(const char *name) {
     this->name = name;

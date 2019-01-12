@@ -1,8 +1,9 @@
 #include <iostream>
-#include "simplifier.h"
+#include "model/Variable.h"
+#include "model/Constant.h"
 
 int main() {
-    Variable a = Variable("hello");
+    Constant a = Constant(false);
+
     std::cout << a << std::endl;
-    return 0;
 }
