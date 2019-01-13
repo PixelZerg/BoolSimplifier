@@ -4,8 +4,8 @@
 
 enum ExprType{
     // order of precedence (highest last)
-    NONE = -1,
-    OR = 0,
+    NONE = 0,
+    OR = 1,
     AND = 2,
     NOT = 3,
 

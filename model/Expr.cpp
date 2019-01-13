@@ -29,7 +29,11 @@ Expr::Expr(ExprType type, std::list<Symbol*> inputs) {
 }
 
 Expr::~Expr() {
-    inputs.clear();
+    // NB: must free mem like this. inputs.clear() will cause leaks
+    while(!inputs.empty()){
+        delete inputs.front();
+        inputs.pop_front();
+    }
 }
 
 
