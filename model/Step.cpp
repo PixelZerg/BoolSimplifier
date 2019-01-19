@@ -1,9 +1,10 @@
+#include <iostream>
 #include "Step.h"
 
 Step::Step() = default;
 
-Step::Step(Expr* expr, const char* message){
-    this->expr = expr;
+Step::Step(Symbol* expr, const char* message){
+    this->expr = (Expr*)expr;
     this->message = message;
 }
 
@@ -12,5 +13,5 @@ Step::~Step() {
 }
 
 std::ostream &operator<<(std::ostream &stream, Step &v) {
-    return stream << v.expr->render() + " \t\t" + v.message;
+    return stream << *(v.expr) << " \t\t" + v.message << std::endl;
 }

@@ -8,6 +8,7 @@ public:
 
     explicit Variable(const char* name);
     std::string render() override;
+    Symbol* cloned() override;
 };
 
 

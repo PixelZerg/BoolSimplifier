@@ -31,6 +31,7 @@ public:
            const std::string &sym_lbrac,
            const std::string &sym_rbrac,
            const ExprType &parentType);
+    virtual Symbol* cloned();
 
     friend std::ostream & operator<<(std::ostream &stream, Symbol &v);
 };

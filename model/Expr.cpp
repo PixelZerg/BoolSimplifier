@@ -122,14 +122,19 @@ std::string Expr::render() {
     return render(NotationStyle::DEFAULT);
 }
 
-std::list<Step *> Expr::simplify() {
-    std::list<Step*> steps;
-    Expr* ex = new Expr(ExprType::NOT,{
-            new Variable("A")
-    });
-    // must CLONE `this` here
-//    steps.push_front(new Step(new Expr(this->type,this->inputs),"wow"));
-    steps.push_front(new Step(ex,"wow"));
-    return steps;
+Symbol* Expr::cloned() {
+    std::list<Symbol*> c_inputs;
+
+    for(Symbol* inp : this->inputs){
+        c_inputs.push_back(inp->cloned());
+    }
+    return new Expr(this->type,c_inputs);
 }
 
+std::list<Step*>* Expr::simplify(std::list<Step*>* steps) {
+    if(steps == nullptr){
+        steps = new std::list<Step*>();
+        steps->push_back(new Step(this->cloned(),"wow"));
+    }
+    return steps;
+}

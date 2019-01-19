@@ -7,3 +7,7 @@ Constant::Constant(bool value) {
 std::string Constant::render() {
     return std::to_string(this->value);
 }
+
+Symbol *Constant::cloned() {
+    return new Constant(this->value);
+}

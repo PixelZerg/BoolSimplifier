@@ -19,3 +19,7 @@ std::string Symbol::render(const std::string &sym_not,
                            const ExprType &parentType) {
     return render();
 }
+
+Symbol* Symbol::cloned() {
+    throw std::logic_error("cloned() not implemented");
+}

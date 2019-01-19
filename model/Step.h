@@ -8,7 +8,7 @@ public:
     std::string message;
 
     Step();
-    Step(Expr* expr, const char* message);
+    Step(Symbol* expr, const char* message);
     ~Step();
 
     friend std::ostream &operator<<(std::ostream &stream, Step &v);

@@ -8,6 +8,7 @@ public:
 
     explicit Constant(bool value);
     std::string render() override;
+    Symbol* cloned() override;
 };
 
 

@@ -25,7 +25,8 @@ public:
            const std::string &sym_rbrac,
            const ExprType &parentType) override;
 
-    std::list<Step*> simplify();
+    Symbol* cloned() override;
+    std::list<Step*>* simplify(std::list<Step*>* steps = nullptr);
 };
 
 

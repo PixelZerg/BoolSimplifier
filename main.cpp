@@ -17,17 +17,18 @@ int main() {
       });
     std::cout << (*e) << std::endl;
 
-    std::list<Step*> steps = (*e).simplify();
+    std::list<Step*>* steps = e->simplify();
 
-    for(Step* step : steps){
+    for(Step* step : *steps){
         std::cout << *step << std::endl;
     }
 
-    while(!steps.empty()){
-        delete steps.front();
-        steps.pop_front();
+    while(!steps->empty()){
+        delete steps->front();
+        steps->pop_front();
     }
 
+    delete steps;
     delete e;
 
 //    e = new Expr(ExprType::OR,{
