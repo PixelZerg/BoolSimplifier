@@ -5,6 +5,8 @@
 #include <array>
 #include "Symbol.h"
 
+class Step;
+
 class Expr:public Symbol {
 public:
     ExprType type;
@@ -22,6 +24,8 @@ public:
            const std::string &sym_lbrac,
            const std::string &sym_rbrac,
            const ExprType &parentType) override;
+
+    std::list<Step*> simplify();
 };
 
 

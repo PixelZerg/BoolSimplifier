@@ -2,6 +2,7 @@
 #include "model/Expr.h"
 #include "model/Variable.h"
 #include "model/Constant.h"
+#include "model/Step.h"
 
 int main() {
       Expr* e = new Expr(ExprType::NOT,{
@@ -14,7 +15,19 @@ int main() {
                         })
                 })
       });
-    std::cout << (*e).render(NotationStyle::CSTYLE) << std::endl;
+    std::cout << (*e) << std::endl;
+
+    std::list<Step*> steps = (*e).simplify();
+
+    for(Step* step : steps){
+        std::cout << *step << std::endl;
+    }
+
+    while(!steps.empty()){
+        delete steps.front();
+        steps.pop_front();
+    }
+
     delete e;
 
 //    e = new Expr(ExprType::OR,{

@@ -1,4 +1,6 @@
 #include "Expr.h"
+#include "Step.h"
+#include "Variable.h"
 
 Expr::Expr(ExprType type, std::list<Symbol*> inputs) {
     this->type = type;
@@ -119,3 +121,15 @@ std::string Expr::render(NotationStyle format) {
 std::string Expr::render() {
     return render(NotationStyle::DEFAULT);
 }
+
+std::list<Step *> Expr::simplify() {
+    std::list<Step*> steps;
+    Expr* ex = new Expr(ExprType::NOT,{
+            new Variable("A")
+    });
+    // must CLONE `this` here
+//    steps.push_front(new Step(new Expr(this->type,this->inputs),"wow"));
+    steps.push_front(new Step(ex,"wow"));
+    return steps;
+}
+

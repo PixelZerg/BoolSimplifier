@@ -12,5 +12,5 @@ set(SOURCE_FILES
         model/Constant.cpp
         model/Constant.h
         model/Expr.cpp
-        model/Expr.h)
+        model/Expr.h model/Step.cpp model/Step.h)
 add_executable(BoolSimplifier ${SOURCE_FILES})
