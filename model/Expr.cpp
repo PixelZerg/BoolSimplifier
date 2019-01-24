@@ -216,5 +216,10 @@ void Expr::simp_identity(std::list<Step *> *steps) {
 
     for(unsigned long i = cl->inputs.size()-1; i>=0; i--){
         auto* c = dynamic_cast<Constant*>(cl->inputs.at(i));
+        if(c != nullptr){
+            if(c->value == search){
+                // todo remove this and return
+            }
+        }
     }
 }
