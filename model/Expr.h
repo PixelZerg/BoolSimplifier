@@ -27,6 +27,10 @@ public:
 
     Symbol* cloned() override;
     std::list<Step*>* simplify(std::list<Step*>* steps = nullptr);
+
+private:
+    void simp_null(std::list<Step *> *steps);
+    void simp_inverse(std::list<Step *> *steps);
 };
 
 

@@ -1,6 +1,8 @@
+#include <iostream>
 #include "Expr.h"
 #include "Step.h"
 #include "Variable.h"
+#include "Constant.h"
 
 Expr::Expr(ExprType type, std::list<Symbol*> inputs) {
     this->type = type;
@@ -134,7 +136,70 @@ Symbol* Expr::cloned() {
 std::list<Step*>* Expr::simplify(std::list<Step*>* steps) {
     if(steps == nullptr){
         steps = new std::list<Step*>();
-        steps->push_back(new Step(this->cloned(),"wow"));
+        steps->push_back(new Step(this->cloned(),"Input"));
     }
+    simp_null(steps);
+    simp_inverse(steps);
     return steps;
+}
+
+void Expr::simp_null(std::list<Step*> *steps) {
+    Symbol* x = steps->back()->expr; // get last symbol in step list
+    auto * cur = dynamic_cast<Expr*>(x); // cast to Expr
+    if(cur == nullptr){
+        return; // if not Expr, return
+    }
+
+    bool found = false;
+    bool search = cur->type == ExprType::OR;
+
+    for(auto* inp : cur->inputs){
+        auto* c = dynamic_cast<Constant*>(inp);
+        if(c != nullptr){
+            if(c->value == search){
+                found = true;
+                break;
+            }
+        }
+    }
+
+    if(found){
+        steps->push_back(new Step((Symbol*)(new Constant(search)),"Null Law"));
+    }
+}
+
+void Expr::simp_inverse(std::list<Step*>* steps) {
+    Symbol* x = steps->back()->expr; // get last symbol in step list
+    auto * cur = dynamic_cast<Expr*>(x); // cast to Expr
+    if(cur == nullptr){
+        return; // if not Expr, return
+    }
+
+    bool found = false;
+
+    for(auto* inp : cur->inputs){
+        auto* v = dynamic_cast<Variable*>(inp);
+        if(v != nullptr){
+            // try find negated version of this
+            for(auto* inp1 : cur->inputs){
+                auto* n = dynamic_cast<Expr*>(inp1);
+                if(n != nullptr){
+                    if(n->type == ExprType::NOT){
+                        auto* v2 = dynamic_cast<Variable*>(n->inputs.front());
+                        if(v2 != nullptr){
+                            if(v2->name == v->name){
+                                // found negated match
+                                found = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if(found){
+        steps->push_back(new Step(new Constant(cur->type == ExprType::OR),"Inverse Law"));
+        // because of Null law, as long as there is one pair, the entire thing can be simplified
+    }
 }

@@ -5,17 +5,29 @@
 #include "model/Step.h"
 
 int main() {
-      Expr* e = new Expr(ExprType::NOT,{
-                new Expr(ExprType::OR,{
-                        new Variable("A"),
-                        new Expr(ExprType::AND,{
-                                new Variable("B"),
-                                new Variable("C"),
-                                new Constant(true)
-                        })
-                })
-      });
-    std::cout << (*e) << std::endl;
+//      Expr* e = new Expr(ExprType::NOT,{
+//                new Expr(ExprType::OR,{
+//                        new Variable("A"),
+//                        new Expr(ExprType::AND,{
+//                                new Variable("B"),
+//                                new Variable("C"),
+//                                new Constant(true)
+//                        })
+//                })
+//      });
+//    Expr* e = new Expr(ExprType::AND,{
+//                    new Variable("B"),
+//                    new Variable("C"),
+//                    new Constant(false)
+//    });
+    Expr* e = new Expr(ExprType::AND,{
+            new Variable("A"),
+            new Expr(ExprType::NOT,{
+                    new Variable("A")
+            })
+    });
+
+//    std::cout << (*e) << std::endl;
 
     std::list<Step*>* steps = e->simplify();
 

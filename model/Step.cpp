@@ -13,5 +13,5 @@ Step::~Step() {
 }
 
 std::ostream &operator<<(std::ostream &stream, Step &v) {
-    return stream << *(v.expr) << " \t\t" + v.message << std::endl;
+    return stream << v.message << ": " << *(v.expr);
 }
