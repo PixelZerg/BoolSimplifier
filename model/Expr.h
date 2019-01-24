@@ -3,6 +3,7 @@
 #include <list>
 #include <string>
 #include <array>
+#include <vector>
 #include "Symbol.h"
 
 class Step;
@@ -10,9 +11,9 @@ class Step;
 class Expr:public Symbol {
 public:
     ExprType type;
-    std::list<Symbol*> inputs;
+    std::vector<Symbol*> inputs;
 
-    Expr(ExprType type, std::list<Symbol*> inputs);
+    Expr(ExprType type, std::vector<Symbol*> inputs);
     ~Expr() override;
 
     std::string render() override;
@@ -31,6 +32,7 @@ public:
 private:
     void simp_null(std::list<Step *> *steps);
     void simp_inverse(std::list<Step *> *steps);
+    void simp_identity(std::list<Step*> *steps);
 };
 
 

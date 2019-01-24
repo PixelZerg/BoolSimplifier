@@ -4,7 +4,7 @@
 #include "Variable.h"
 #include "Constant.h"
 
-Expr::Expr(ExprType type, std::list<Symbol*> inputs) {
+Expr::Expr(ExprType type, std::vector<Symbol*> inputs) {
     this->type = type;
     this->inputs = inputs;
 
@@ -35,8 +35,8 @@ Expr::Expr(ExprType type, std::list<Symbol*> inputs) {
 Expr::~Expr() {
     // NB: must free mem like this. inputs.clear() will cause leaks
     while(!inputs.empty()){
-        delete inputs.front();
-        inputs.pop_front();
+        delete inputs.back();
+        inputs.pop_back();
     }
 }
 
@@ -125,7 +125,7 @@ std::string Expr::render() {
 }
 
 Symbol* Expr::cloned() {
-    std::list<Symbol*> c_inputs;
+    std::vector<Symbol*> c_inputs;
 
     for(Symbol* inp : this->inputs){
         c_inputs.push_back(inp->cloned());
@@ -201,5 +201,20 @@ void Expr::simp_inverse(std::list<Step*>* steps) {
     if(found){
         steps->push_back(new Step(new Constant(cur->type == ExprType::OR),"Inverse Law"));
         // because of Null law, as long as there is one pair, the entire thing can be simplified
+    }
+}
+
+void Expr::simp_identity(std::list<Step *> *steps) {
+    Symbol* x = steps->back()->expr; // get last symbol in step list
+    auto * cur = dynamic_cast<Expr*>(x); // cast to Expr
+    if(cur == nullptr){
+        return; // if not Expr, return
+    }
+
+    auto * cl = (Expr*)cur->cloned();
+    bool search = cur->type == ExprType::AND;
+
+    for(unsigned long i = cl->inputs.size()-1; i>=0; i--){
+        auto* c = dynamic_cast<Constant*>(cl->inputs.at(i));
     }
 }
