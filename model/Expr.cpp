@@ -138,6 +138,7 @@ std::list<Step*>* Expr::simplify(std::list<Step*>* steps) {
         steps = new std::list<Step*>();
         steps->push_back(new Step(this->cloned(),"Input"));
     }
+    simp_identity(steps);
     simp_null(steps);
     simp_inverse(steps);
     return steps;
@@ -213,13 +214,22 @@ void Expr::simp_identity(std::list<Step *> *steps) {
 
     auto * cl = (Expr*)cur->cloned();
     bool search = cur->type == ExprType::AND;
+    bool found = false;
 
-    for(unsigned long i = cl->inputs.size()-1; i>=0; i--){
-        auto* c = dynamic_cast<Constant*>(cl->inputs.at(i));
-        if(c != nullptr){
-            if(c->value == search){
-                // todo remove this and return
-            }
-        }
+//    for(unsigned long i = cl->inputs.size(); i--;){
+//        auto* c = dynamic_cast<Constant*>(cl->inputs.at(i));
+//        if(c != nullptr){
+//            if(c->value == search){
+//                cl->inputs.erase(inputs.begin()+i); //remove
+//                found = true;
+//            }
+//        }
+//    }
+    //TODO: fix.
+    // maybe make list of pointers and then delete the pointers
+
+    if(found){
+        steps->push_back(new Step(cl,"Identity Law"));
     }
+
 }
