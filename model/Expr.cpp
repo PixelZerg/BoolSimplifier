@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include "Expr.h"
 #include "Step.h"
 #include "Variable.h"
@@ -216,20 +217,20 @@ void Expr::simp_identity(std::list<Step *> *steps) {
     bool search = cur->type == ExprType::AND;
     bool found = false;
 
-//    for(unsigned long i = cl->inputs.size(); i--;){
-//        auto* c = dynamic_cast<Constant*>(cl->inputs.at(i));
-//        if(c != nullptr){
-//            if(c->value == search){
-//                cl->inputs.erase(inputs.begin()+i); //remove
-//                found = true;
-//            }
-//        }
-//    }
-    //TODO: fix.
-    // maybe make list of pointers and then delete the pointers
+    // select inputs of cl to remove
+    cl->inputs.erase(std::remove_if(cl->inputs.begin(), cl->inputs.end(),
+                           [&search, &found](Symbol* inp) {
+                               auto* c = dynamic_cast<Constant*>(inp);
+                                if(c != nullptr){
+                                    if(c->value == search){
+                                        found = true;
+                                        return true;
+                                    }
+                                }
+                               return false;
+                           }), cl->inputs.end());
 
     if(found){
         steps->push_back(new Step(cl,"Identity Law"));
     }
-
 }

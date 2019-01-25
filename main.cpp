@@ -20,11 +20,15 @@ int main() {
 //                    new Variable("C"),
 //                    new Constant(false)
 //    });
+//    Expr* e = new Expr(ExprType::AND,{
+//            new Variable("A"),
+//            new Expr(ExprType::NOT,{
+//                    new Variable("A")
+//            })
+//    });
     Expr* e = new Expr(ExprType::AND,{
-            new Variable("A"),
-            new Expr(ExprType::NOT,{
-                    new Variable("A")
-            })
+            new Constant(true),
+            new Variable("A")
     });
 
 //    std::cout << (*e) << std::endl;
