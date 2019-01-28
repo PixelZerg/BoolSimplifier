@@ -1,68 +1,73 @@
+import abc
 from enum import Enum
 from typing import List
 
 
-class Variable:
-    def __init__(self, name, is_constant=False):
-        # auto constant detection
-        if isinstance(name, int) and name == 0 or name == 1:
-            is_constant = True
+class Symbol(abc.ABC):
 
-        if is_constant:
-            self.value = name
-            self.name = str(name)
+    @abc.abstractmethod
+    def render(self, **kwargs):
+        """
+        render into a human-readable string format.
+        """
+        pass
 
-            if self.value not in (0,1):
-                raise ValueError("Invalid constant: {}".format(name))
-        else:
-            self.name = name
-
-        self.is_constant = is_constant
-
-    def __eq__(self, other):
-        return self.name == other.name
-
+    # region string overloading
     def __str__(self):
+        return self.render()
+
+    def __repr__(self):
+        return self.render()
+    # endregion
+
+class Variable(Symbol):
+
+    def __init__(self, name:str):
+        self.name = name
+
+    def render(self, **kwargs):
         return self.name
 
+class Constant(Symbol):
 
-class Step(BaseException):
-    # can be 'raised' to above scope
+    def __init__(self, value:bool):
+        self.value = value
 
-    def __init__(self, expr, comment):
-        self.expr = expr
-        self.comment = comment
-
-    def __str__(self):
-        return "{:<20}{}".format(str(self.expr),self.comment)
-
-class NotationStyle:
-    DEFAULT = ('!','+',None) # !(A + BC)
-    CSTYLE = ('!','||','&&') # !(A || B && C)
-    WRITTEN = ('not','or','and') # not(A or B and C)
-    MATHEMATICAL = ('¬','∨','∧') # ¬(A ∨ B ∧ C)
-    LATEX = ('\\overline','+',None,'(',')','{','}') # \overline{A + BC}
-
+    def render(self,**kwargs):
+        return "1" if self.value else "0"
 
 class ExprType(Enum):
-    NONE=-1
-    OR=0
-    AND=1
-    NOT=2
+    # order of precedence (highest last)
+    NONE=0
+    OR=1
+    AND=2
+    NOT=3
 
-class Expr:
+    # region comparison overloading
+    def __gt__(self, other):
+        return self.value > other.value
+
+    def __lt__(self, other):
+        return self.value < other.value
+    # endregion
+
+class Expr(Symbol):
+
     def __init__(self, typ:ExprType, *inputs):
         self.type:ExprType = typ
-        self.inputs:List = list(inputs)
+        self.inputs:List[Symbol] = list(inputs)
 
         # input checking
         if self.type is ExprType.NOT:
-            if len(inputs)!=1:
-                raise ValueError('{} operator: Exactly 1 input required. {} provided.'
+            if len(inputs) != 1:
+                raise ValueError("{} operator: Exactly 1 input required. {} provided."
                                  .format(self.type.name, len(inputs)))
-        elif len(inputs)<2:
-            raise ValueError('{} operator: At least 2 inputs required. {} provided.'
+        elif len(inputs) < 2:
+            raise ValueError("{} operator: At least 2 inputs required. {} provided."
                              .format(self.type.name, len(inputs)))
+        elif self.type is ExprType.NONE:
+            raise ValueError("{} operator: Should not be directly instantiated"
+                             .format(self.type.name))
 
     # region static initialisers
     @staticmethod
@@ -70,9 +75,9 @@ class Expr:
         """
         Given a list of variablenames/Exprs, produce corresponding list of *variables*/Exprs
         """
-        ret=[]
+        ret = []
         for inp in inputs:
-            if isinstance(inp,str):
+            if isinstance(inp, str):
                 ret.append(Variable(inp))
             else:
                 ret.append(inp)
@@ -91,101 +96,48 @@ class Expr:
         return Expr(ExprType.AND, *Expr.__inst_inputs(*inputs))
     # endregion
 
-    def render(self,
-               formatting=NotationStyle.DEFAULT,
-               indent=None):
-        """
-        Render into a human-readable string format.
-        Usage: render(NotationStyle.CSTYLE)
-
-        :param formatting: tuple defining the formatting. See `NotationStyle` for some templates.
-        :param indent: no spaces to indent with, otherwise `None`
-        :raises ValueError: if invalid formatting input
-        """
+    def render(self, **kwargs):
         # param work
-        sym_not,\
-        sym_or,\
-        sym_and,\
-        *sym_brac_extra = formatting
+        sym_not = kwargs.get("sym_not", "!")
+        sym_or = kwargs.get("sym_or", "+")
+        sym_and = kwargs.get("sym_and", "")
+        sym_lbrac = kwargs.get("sym_lbrac", "(")
+        sym_rbrac = kwargs.get("sym_rbrac", ")")
+        parent_type = kwargs.get("parent_type", ExprType.NONE)
 
-        sym_lbrac, sym_rbrac = '()'
-        sym_lbrac_special, sym_rbrac_special = None, None
+        rend = ""
 
-        if len(sym_brac_extra)>0:
-            sym_lbrac,\
-            sym_rbrac,\
-            sym_lbrac_special,\
-            sym_rbrac_special = sym_brac_extra
-            # raises ValueError (unpack error) if invalid input
-
-        if sym_lbrac_special is None:
-            sym_lbrac_special = sym_lbrac
-        if sym_rbrac_special is None:
-            sym_rbrac_special = sym_rbrac
-
-        # rendering
-        s=''
+        # NOT prefix
         if self.type is ExprType.NOT:
-            s+=sym_not
-            if isinstance(self.inputs[0],Expr):
-                s += sym_lbrac_special
-                s += self.inputs[0].render(formatting,indent)
-                s += sym_rbrac_special
-            else:
-                # no brackets needed
-                s += str(self.inputs[0])
-        elif self.type is ExprType.OR or self.type is ExprType.AND:
-            for i, inp in enumerate(self.inputs):
-                if isinstance(inp, Expr):
-                    if inp.type is self.type:
-                        s += sym_lbrac
-                        s += inp.render(formatting, indent)
-                        s += sym_rbrac
-                    else:
-                        # operator precedence means brackets not needed
-                        s += inp.render(formatting, indent)
-                else:
-                    # no brackets needed
-                    s += str(inp)
+            rend += sym_not
 
-                if 0 <= i < len(self.inputs)-1:
-                    # add operator
-                    sym = sym_or if self.type is ExprType.OR else sym_and
-                    s += ' '+sym+' ' if sym is not None else ''
+        # load operator string to sym
+        sym = ""
+        if self.type is ExprType.AND: sym = sym_and
+        elif self.type is ExprType.OR: sym = sym_or
+        elif self.type is not ExprType.NOT:
+            # instantiating an Expr object with type NONE should already have been prevented, but still (for future):
+            raise ValueError("Unsupported operator type: {}".format(self.type.name))
 
-        return s
+        # pad
+        if sym is not '':
+            sym = ' ' + sym + ' '
 
-    def __str__(self):
-        return self.render()
+        # inner expr rendering
+        for i, inp in enumerate(self.inputs):
+            kwargs.update({"parent_type":self.type}) # update kwargs' parent_type
+            rend += inp.render(**kwargs) # NB: non-expr types will ignore passed kwargs (polymorphism)
 
-    def simplify(self,cur_level=0):
-        # steptrace = traces steps taken to simplify
-        steptrace= []
+            if 0 <= i < len(self.inputs)-1:
+                # add operator string
+                rend += sym
 
-        # recursively simplify inputs themselves (if they are Exprs)
-        for inp in self.inputs:
-            if isinstance(inp,Expr):
-                steptrace.append(inp.simplify(cur_level=cur_level+1)) # append sub-steptrace
+        if self.type > parent_type:
+            # self's precedence greater than that of parent = no need to wrap
+            return rend
+        else:
+            # wrap in brackets to show precedence explicitly
+            return sym_lbrac + rend + sym_rbrac
 
-        while True:
-            try:
-                self.step_rewrite()
-
-                # if got to here, no additional steps were made, so break
-                break
-            except Step as step:
-                steptrace.append(step)
-                print(('\t'*cur_level)+str(step))
-
-        return steptrace
-
-    def step_rewrite(self):
-        if len(self.inputs)>1:
-            # sort terms, custom compare function
-            pass
-
-# e = Expr(ExprType.AND,Variable('A'),Variable('A'))
-# x=e.simplify()
 e = Expr.NOT(Expr.OR('A',Expr.AND('B','C','1')))
-e.simplify()
 print(e)
