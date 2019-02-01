@@ -186,6 +186,7 @@ class Expr(Symbol):
         steps:List[Step] = [Step(self.clone(), "Input")]
 
         self.__simp_reorder(steps)
+        self.__simp_identity(steps)
 
         return steps
 
@@ -211,6 +212,7 @@ class Expr(Symbol):
         return ret
     # endregion
 
+    # region simplification methods
     def __simp_reorder(self, steps):
         """
         reordering of terms
@@ -218,6 +220,24 @@ class Expr(Symbol):
         self.inputs.sort(key=lambda x: self.__order_index(x))
         if self.__has_changed(steps):
             steps.append(Step(self.clone(),"Reorder"))
+
+    # noinspection PyUnresolvedReferences
+    def __simp_identity(self, steps):
+        search = self.type == ExprType.AND
+        found = False
+
+        i = 0
+        while i < len(self.inputs):
+            if isinstance(self.inputs[i], Constant) and self.inputs[i].value == search:
+                del self.inputs[i]
+                found = True
+                # do not increment i because just deleted
+            else:
+                i += 1
+
+        if found:
+            steps.append(Step(self.clone(),"Identity Law"))
+    # endregion
 
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
 e = Expr.AND("B","C",True)
