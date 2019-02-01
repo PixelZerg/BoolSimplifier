@@ -59,22 +59,15 @@ class StepType(Enum):
     UNKNOWN=0
     INPUT=1
     REORDER=2
-    IDENTITY=3
-    NULL=4
+    IDENTITY_LAW=3
+    NULL_LAW=4
 
     @property
-    def description(self):
-        # todo auto
+    def nice_name(self):
         """
         Get human-friendly description of StepType
         """
-        return [
-            "",
-            "Input",
-            "Reorder",
-            "Identity Law",
-            "Null Law",
-        ][self.value]
+        return self.name.replace('_',' ').title()
 
 class Step:
     def __init__(self, sym:Symbol, step_type:StepType):
@@ -83,7 +76,7 @@ class Step:
 
     # region string overloading
     def __str__(self):
-        return self.step_type.description.ljust(20) + str(self.sym)
+        return self.step_type.nice_name.ljust(20) + str(self.sym)
     # endregion
 
 class ExprType(Enum):
@@ -102,6 +95,7 @@ class ExprType(Enum):
     # endregion
 
 class Expr(Symbol):
+    # todo impl equality checking
 
     def __init__(self, typ:ExprType, *inputs):
         self.type:ExprType = typ
@@ -287,7 +281,7 @@ class Expr(Symbol):
                 i += 1
 
         if found:
-            return Step(expr, StepType.IDENTITY)
+            return Step(expr, StepType.IDENTITY_LAW)
 
     @staticmethod
     def __simp_null(expr):
@@ -296,7 +290,7 @@ class Expr(Symbol):
         for inp in expr.inputs:
             if isinstance(inp, Constant) and inp.value == search:
                 # no need to keep iterating
-                return Step(Constant(search), StepType.NULL)
+                return Step(Constant(search), StepType.NULL_LAW)
     # endregion
 
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
