@@ -60,9 +60,11 @@ class StepType(Enum):
     INPUT=1
     REORDER=2
     IDENTITY=3
+    NULL=4
 
     @property
     def description(self):
+        # todo auto
         """
         Get human-friendly description of StepType
         """
@@ -71,6 +73,7 @@ class StepType(Enum):
             "Input",
             "Reorder",
             "Identity Law",
+            "Null Law",
         ][self.value]
 
 class Step:
@@ -207,8 +210,9 @@ class Expr(Symbol):
         # todo recursive simp inputs here
 
         simp_methods = [
-            self.__simp_reorder,
-            self.__simp_identity,
+            Expr.__simp_reorder,
+            Expr.__simp_null,
+            Expr.__simp_identity,
         ]
 
         # todo in while loop (NB: if non-expr, simplification def done)
@@ -272,10 +276,19 @@ class Expr(Symbol):
 
         if found:
             return Step(expr, StepType.IDENTITY)
+
+    @staticmethod
+    def __simp_null(expr):
+        search = expr.type == ExprType.OR
+
+        for inp in expr.inputs:
+            if isinstance(inp, Constant) and inp.value == search:
+                # no need to keep iterating
+                return Step(Constant(search), StepType.NULL)
     # endregion
 
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
-e = Expr.AND("B","C", True)
+e = Expr.AND("B","C", False)
 
 for step in e.simplify():
     print(step)
