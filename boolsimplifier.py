@@ -1,4 +1,5 @@
 import abc
+import warnings
 from enum import Enum
 from typing import List
 
@@ -31,6 +32,11 @@ class Variable(Symbol):
 
     def __init__(self, name:str):
         self.name = name
+
+        # input checking
+        if self.name == '1' or self.name == '0':
+            warnings.warn("Variable: Using {} as variable name. "
+                          "You might have meant to instantiate a Constant instead.".format(self.name), stacklevel=2)
 
     def render(self, **kwargs):
         return self.name
@@ -96,12 +102,14 @@ class Expr(Symbol):
     @staticmethod
     def __inst_inputs(*inputs):
         """
-        Given a list of variablenames/Exprs, produce corresponding list of *variables*/Exprs
+        Given a list of bools/variablenames/Exprs, produce corresponding list of symbols
         """
         ret = []
         for inp in inputs:
             if isinstance(inp, str):
                 ret.append(Variable(inp))
+            elif isinstance(inp, bool):
+                ret.append(Constant(inp))
             else:
                 ret.append(inp)
         return ret
@@ -170,11 +178,11 @@ class Expr(Symbol):
         return Expr(self.type, *cloned_inputs)
 
     def simplify(self):
-        steps:List[Step] = []
-        steps.append(Step(self.clone(),"hello"))
+        # init steps list (including current state as first step)
+        steps:List[Step] = [Step(self.clone(), "Input")]
         return steps
 
-e = Expr.NOT(Expr.OR('A',Expr.AND('B','C','1')))
+e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
 
 for step in e.simplify():
     print(step)
