@@ -177,12 +177,50 @@ class Expr(Symbol):
             cloned_inputs.append(inp.clone())
         return Expr(self.type, *cloned_inputs)
 
-    def simplify(self):
+    def simplify(self) -> List[Step]:
+        """
+        simplify the expression, with steps
+        :return: list of Step objects
+        """
         # init steps list (including current state as first step)
         steps:List[Step] = [Step(self.clone(), "Input")]
+
+        self.__simp_reorder(steps)
+
         return steps
 
-e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
+    # region private helper methods
+    def __has_changed(self, steps):
+        """
+        Whether the Expr has changed in comparison to the last step
+        """
+        return steps[-1].step.render() != self.render()
+
+    @staticmethod
+    def __order_index(sym:Symbol):
+        """
+        returns a string which serves as an index for the given Symbol - for use in ordering
+        """
+        ret = ""
+        if isinstance(sym, Symbol):
+            ret = "\u0000" # front alphabetically
+        if isinstance(sym, Expr):
+            ret = u"\uFFFF" # end alphabetically
+
+        ret += sym.render()
+        return ret
+    # endregion
+
+    def __simp_reorder(self, steps):
+        """
+        reordering of terms
+        """
+        self.inputs.sort(key=lambda x: self.__order_index(x))
+        if self.__has_changed(steps):
+            steps.append(Step(self.clone(),"Reorder"))
+
+# e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
+e = Expr.AND("B","C",True)
 
 for step in e.simplify():
     print(step)
