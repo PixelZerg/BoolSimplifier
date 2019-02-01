@@ -295,6 +295,8 @@ class Expr(Symbol):
 
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
 e = Expr.AND("B","C", False)
+f = Expr.AND("B","C",False)
+print(e==f)
 
 for s in e.simplify():
     print(s)
