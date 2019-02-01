@@ -12,6 +12,13 @@ class Symbol(abc.ABC):
         """
         pass
 
+    @abc.abstractmethod
+    def clone(self):
+        """
+        polymorphic cloning
+        """
+        pass
+
     # region string overloading
     def __str__(self):
         return self.render()
@@ -28,6 +35,9 @@ class Variable(Symbol):
     def render(self, **kwargs):
         return self.name
 
+    def clone(self):
+        return Variable(self.name)
+
 class Constant(Symbol):
 
     def __init__(self, value:bool):
@@ -35,6 +45,19 @@ class Constant(Symbol):
 
     def render(self,**kwargs):
         return "1" if self.value else "0"
+
+    def clone(self):
+        return Constant(self.value)
+
+class Step:
+    def __init__(self, step:Symbol, message:str):
+        self.step = step
+        self.message = message
+
+    # region string overloading
+    def __str__(self):
+        return self.message.ljust(20) + str(self.step)
+    # endregion
 
 class ExprType(Enum):
     # order of precedence (highest last)
@@ -119,11 +142,11 @@ class Expr(Symbol):
             # instantiating an Expr object with type NONE should already have been prevented, but still (for future):
             raise ValueError("Unsupported operator type: {}".format(self.type.name))
 
-        # pad
+        # pad sym
         if sym is not '':
             sym = ' ' + sym + ' '
 
-        # inner expr rendering
+        # recursive inner expr rendering
         for i, inp in enumerate(self.inputs):
             kwargs.update({"parent_type":self.type}) # update kwargs' parent_type
             rend += inp.render(**kwargs) # NB: non-expr types will ignore passed kwargs (polymorphism)
@@ -139,5 +162,19 @@ class Expr(Symbol):
             # wrap in brackets to show precedence explicitly
             return sym_lbrac + rend + sym_rbrac
 
+    def clone(self):
+        cloned_inputs = []
+
+        for inp in self.inputs:
+            cloned_inputs.append(inp.clone())
+        return Expr(self.type, *cloned_inputs)
+
+    def simplify(self):
+        steps:List[Step] = []
+        steps.append(Step(self.clone(),"hello"))
+        return steps
+
 e = Expr.NOT(Expr.OR('A',Expr.AND('B','C','1')))
-print(e)
+
+for step in e.simplify():
+    print(step)
