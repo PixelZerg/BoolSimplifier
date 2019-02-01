@@ -212,18 +212,26 @@ class Expr(Symbol):
 
         # todo recursive simp inputs here
 
-        # execute simplification methods and push steps to list if necessary
-        for simp_method, step_type in self.__simp_methods:
-            output = simp_method()
+        while True:
+            stepped = False # whether any steps were pushed
 
-            push_step = False
-            if output is None:
-                if self.__has_changed(steps):
-                    push_step = True
+            # execute simplification methods and push steps to list if necessary
+            for simp_method, step_type in self.__simp_methods:
+                output = simp_method()
 
-            if push_step or output:
-                # push step
-                steps.append(Step(self.clone(),step_type))
+                push_step = False
+                if output is None:
+                    if self.__has_changed(steps):
+                        push_step = True
+
+                if push_step or output:
+                    # push step
+                    stepped = True
+                    steps.append(Step(self.clone(),step_type))
+
+            if not stepped:
+                # no steps made = simplification process done
+                break
 
         return steps
 
@@ -278,7 +286,7 @@ class Expr(Symbol):
     # endregion
 
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
-e = Expr.AND("B","C",True)
+e = Expr.AND("B","C",False)
 
 for step in e.simplify():
     print(step)
