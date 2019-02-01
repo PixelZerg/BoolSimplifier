@@ -74,13 +74,13 @@ class StepType(Enum):
         ][self.value]
 
 class Step:
-    def __init__(self, step:Symbol, step_type:StepType):
-        self.step = step
+    def __init__(self, sym:Symbol, step_type:StepType):
+        self.sym = sym
         self.step_type = step_type
 
     # region string overloading
     def __str__(self):
-        return self.step_type.description.ljust(20) + str(self.step)
+        return self.step_type.description.ljust(20) + str(self.sym)
     # endregion
 
 class ExprType(Enum):
@@ -206,19 +206,21 @@ class Expr(Symbol):
 
         # todo recursive simp inputs here
 
-        # todo in while loop
-        self.__simp_reorder(steps)
-        self.__simp_identity(steps)
+        simp_methods = [
+            self.__simp_reorder,
+            self.__simp_identity,
+        ]
+
+        # todo in while loop (NB: if non-expr, simplification def done)
+        # execute simplification methods and push steps when necessary
+        for method in simp_methods:
+            step = method(steps[-1].sym)
+            if step is not None:
+                steps.append(step)
 
         return steps
 
     # region private helper methods
-    def __has_changed(self, steps):
-        """
-        Whether the Expr has changed in comparison to the last step
-        """
-        return steps[-1].step.render() != self.render()
-
     @staticmethod
     def __order_index(sym:Symbol):
         """
@@ -235,30 +237,41 @@ class Expr(Symbol):
     # endregion
 
     # region simplification methods
-    def __simp_reorder(self, steps):
+    # simplification methods:
+    #       input: reference to last expression pushed to steps
+    #       return: Step objects or None
+
+    @staticmethod
+    def __simp_reorder(expr):
         """
         reordering of terms
         """
-        self.inputs.sort(key=lambda x: self.__order_index(x))
-        if self.__has_changed(steps):
-            steps.append(Step(self.clone(), StepType.REORDER))
+        expr = expr.clone() # remember: expr is reference - do not want to modify previous step
 
-    # noinspection PyUnresolvedReferences
-    def __simp_identity(self, steps):
-        search = self.type == ExprType.AND
+        before = expr.render()
+        expr.inputs.sort(key=lambda x: Expr.__order_index(x))
+
+        if expr.render() != before: # has changed
+            return Step(expr, StepType.REORDER)
+
+    @staticmethod
+    def __simp_identity(expr):
+        expr = expr.clone()
+
+        search = expr.type == ExprType.AND
         found = False
 
         i = 0
-        while i < len(self.inputs):
-            if isinstance(self.inputs[i], Constant) and self.inputs[i].value == search:
-                del self.inputs[i]
+        while i < len(expr.inputs):
+            if isinstance(expr.inputs[i], Constant) and expr.inputs[i].value == search:
+                del expr.inputs[i]
                 found = True
                 # do not increment i because just deleted
             else:
                 i += 1
 
         if found:
-            steps.append(Step(self.clone(), StepType.IDENTITY))
+            return Step(expr, StepType.IDENTITY)
     # endregion
 
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
