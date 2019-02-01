@@ -104,7 +104,13 @@ class Expr(Symbol):
         self.type:ExprType = typ
         self.inputs:List[Symbol] = list(inputs)
 
-        # input checking
+        # private simplification methods list
+        self.__simp_methods = [
+            (self.__simp_reorder, StepType.REORDER),
+            (self.__simp_identity, StepType.IDENTITY),
+        ]
+
+        # region input checking
         if self.type is ExprType.NOT:
             if len(inputs) != 1:
                 raise ValueError("{} operator: Exactly 1 input required. {} provided."
@@ -115,6 +121,7 @@ class Expr(Symbol):
         elif self.type is ExprType.NONE:
             raise ValueError("{} operator: Should not be directly instantiated"
                              .format(self.type.name))
+        # endregion
 
     # region static initialisers
     @staticmethod
@@ -144,6 +151,13 @@ class Expr(Symbol):
     def AND(*inputs):
         return Expr(ExprType.AND, *Expr.__inst_inputs(*inputs))
     # endregion
+
+    def clone(self):
+        cloned_inputs = []
+
+        for inp in self.inputs:
+            cloned_inputs.append(inp.clone())
+        return Expr(self.type, *cloned_inputs)
 
     def render(self, **kwargs):
         # param work
@@ -188,13 +202,6 @@ class Expr(Symbol):
             # wrap in brackets to show precedence explicitly
             return sym_lbrac + rend + sym_rbrac
 
-    def clone(self):
-        cloned_inputs = []
-
-        for inp in self.inputs:
-            cloned_inputs.append(inp.clone())
-        return Expr(self.type, *cloned_inputs)
-
     def simplify(self) -> List[Step]:
         """
         simplify the expression, with steps
@@ -203,8 +210,20 @@ class Expr(Symbol):
         # init steps list (including current state as first step)
         steps:List[Step] = [Step(self.clone(), StepType.INPUT)]
 
-        self.__simp_reorder(steps)
-        self.__simp_identity(steps)
+        # todo recursive simp inputs here
+
+        # execute simplification methods and push steps to list if necessary
+        for simp_method, step_type in self.__simp_methods:
+            output = simp_method()
+
+            push_step = False
+            if output is None:
+                if self.__has_changed(steps):
+                    push_step = True
+
+            if push_step or output:
+                # push step
+                steps.append(Step(self.clone(),step_type))
 
         return steps
 
@@ -231,19 +250,18 @@ class Expr(Symbol):
     # endregion
 
     # region simplification methods
-    def __simp_step(self, f, step_type):
-        pass
+    # simplification methods will return boolean if state needs to be pushed to steps
+    # or can return None if unsure (__simp_step will handle it in this case)
 
-    def __simp_reorder(self, steps):
+    def __simp_reorder(self):
         """
         reordering of terms
         """
         self.inputs.sort(key=lambda x: self.__order_index(x))
-        if self.__has_changed(steps):
-            steps.append(Step(self.clone(), StepType.REORDER))
+        return None
 
     # noinspection PyUnresolvedReferences
-    def __simp_identity(self, steps):
+    def __simp_identity(self):
         search = self.type == ExprType.AND
         found = False
 
@@ -256,8 +274,7 @@ class Expr(Symbol):
             else:
                 i += 1
 
-        if found:
-            steps.append(Step(self.clone(), StepType.IDENTITY))
+        return found
     # endregion
 
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
