@@ -104,12 +104,6 @@ class Expr(Symbol):
         self.type:ExprType = typ
         self.inputs:List[Symbol] = list(inputs)
 
-        # private simplification methods list
-        self.__simp_methods = [
-            (self.__simp_reorder, StepType.REORDER),
-            (self.__simp_identity, StepType.IDENTITY),
-        ]
-
         # region input checking
         if self.type is ExprType.NOT:
             if len(inputs) != 1:
@@ -212,26 +206,9 @@ class Expr(Symbol):
 
         # todo recursive simp inputs here
 
-        while True:
-            stepped = False # whether any steps were pushed
-
-            # execute simplification methods and push steps to list if necessary
-            for simp_method, step_type in self.__simp_methods:
-                output = simp_method()
-
-                push_step = False
-                if output is None:
-                    if self.__has_changed(steps):
-                        push_step = True
-
-                if push_step or output:
-                    # push step
-                    stepped = True
-                    steps.append(Step(self.clone(),step_type))
-
-            if not stepped:
-                # no steps made = simplification process done
-                break
+        # todo in while loop
+        self.__simp_reorder(steps)
+        self.__simp_identity(steps)
 
         return steps
 
@@ -258,18 +235,16 @@ class Expr(Symbol):
     # endregion
 
     # region simplification methods
-    # simplification methods will return boolean if state needs to be pushed to steps
-    # or can return None if unsure (__simp_step will handle it in this case)
-
-    def __simp_reorder(self):
+    def __simp_reorder(self, steps):
         """
         reordering of terms
         """
         self.inputs.sort(key=lambda x: self.__order_index(x))
-        return None
+        if self.__has_changed(steps):
+            steps.append(Step(self.clone(), StepType.REORDER))
 
     # noinspection PyUnresolvedReferences
-    def __simp_identity(self):
+    def __simp_identity(self, steps):
         search = self.type == ExprType.AND
         found = False
 
@@ -282,11 +257,12 @@ class Expr(Symbol):
             else:
                 i += 1
 
-        return found
+        if found:
+            steps.append(Step(self.clone(), StepType.IDENTITY))
     # endregion
 
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
-e = Expr.AND("B","C",False)
+e = Expr.AND("B","C", True)
 
 for step in e.simplify():
     print(step)
