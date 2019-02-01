@@ -215,12 +215,24 @@ class Expr(Symbol):
             Expr.__simp_identity,
         ]
 
-        # todo in while loop (NB: if non-expr, simplification def done)
         # execute simplification methods and push steps when necessary
-        for method in simp_methods:
-            step = method(steps[-1].sym)
-            if step is not None:
-                steps.append(step)
+        while True:
+            stepped = False # whether steps were pushed
+
+            for method in simp_methods:
+                last_sym = steps[-1].sym
+                if not isinstance(last_sym, Expr):
+                    # if last_sym not Expr, no further simplification possible
+                    break
+                step = method(last_sym)
+
+                if step is not None:
+                    stepped = True
+                    steps.append(step)
+
+            if not stepped:
+                # no steps were made = simplification finished
+                break
 
         return steps
 
@@ -290,5 +302,5 @@ class Expr(Symbol):
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
 e = Expr.AND("B","C", False)
 
-for step in e.simplify():
-    print(step)
+for s in e.simplify():
+    print(s)
