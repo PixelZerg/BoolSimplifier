@@ -55,14 +55,32 @@ class Constant(Symbol):
     def clone(self):
         return Constant(self.value)
 
+class StepType(Enum):
+    UNKNOWN=0
+    INPUT=1
+    REORDER=2
+    IDENTITY=3
+
+    @property
+    def description(self):
+        """
+        Get human-friendly description of StepType
+        """
+        return [
+            "",
+            "Input",
+            "Reorder",
+            "Identity Law",
+        ][self.value]
+
 class Step:
-    def __init__(self, step:Symbol, message:str):
+    def __init__(self, step:Symbol, step_type:StepType):
         self.step = step
-        self.message = message
+        self.step_type = step_type
 
     # region string overloading
     def __str__(self):
-        return self.message.ljust(20) + str(self.step)
+        return self.step_type.description.ljust(20) + str(self.step)
     # endregion
 
 class ExprType(Enum):
@@ -183,7 +201,7 @@ class Expr(Symbol):
         :return: list of Step objects
         """
         # init steps list (including current state as first step)
-        steps:List[Step] = [Step(self.clone(), "Input")]
+        steps:List[Step] = [Step(self.clone(), StepType.INPUT)]
 
         self.__simp_reorder(steps)
         self.__simp_identity(steps)
@@ -213,13 +231,16 @@ class Expr(Symbol):
     # endregion
 
     # region simplification methods
+    def __simp_step(self, f, step_type):
+        pass
+
     def __simp_reorder(self, steps):
         """
         reordering of terms
         """
         self.inputs.sort(key=lambda x: self.__order_index(x))
         if self.__has_changed(steps):
-            steps.append(Step(self.clone(),"Reorder"))
+            steps.append(Step(self.clone(), StepType.REORDER))
 
     # noinspection PyUnresolvedReferences
     def __simp_identity(self, steps):
@@ -236,7 +257,7 @@ class Expr(Symbol):
                 i += 1
 
         if found:
-            steps.append(Step(self.clone(),"Identity Law"))
+            steps.append(Step(self.clone(), StepType.IDENTITY))
     # endregion
 
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
