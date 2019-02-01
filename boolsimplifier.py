@@ -44,6 +44,10 @@ class Variable(Symbol):
     def clone(self):
         return Variable(self.name)
 
+    def __eq__(self, other):
+        if not type(self) is type(other): return False
+        return self.name == other.name
+
 class Constant(Symbol):
 
     def __init__(self, value:bool):
@@ -54,6 +58,10 @@ class Constant(Symbol):
 
     def clone(self):
         return Constant(self.value)
+
+    def __eq__(self, other):
+        if not type(self) is type(other): return False
+        return self.value == other.value
 
 class StepType(Enum):
     UNKNOWN=0
@@ -95,8 +103,6 @@ class ExprType(Enum):
     # endregion
 
 class Expr(Symbol):
-    # todo impl equality checking
-
     def __init__(self, typ:ExprType, *inputs):
         self.type:ExprType = typ
         self.inputs:List[Symbol] = list(inputs)
@@ -142,6 +148,11 @@ class Expr(Symbol):
     def AND(*inputs):
         return Expr(ExprType.AND, *Expr.__inst_inputs(*inputs))
     # endregion
+
+    def __eq__(self, other):
+        if not type(self) is type(other): return False
+        if self.type != other.type: return False
+        return self.inputs == other.inputs
 
     def clone(self):
         cloned_inputs = []
@@ -257,11 +268,11 @@ class Expr(Symbol):
         reordering of terms
         """
         expr = expr.clone() # remember: expr is reference - do not want to modify previous step
+        before = expr.clone()
 
-        before = expr.render()
         expr.inputs.sort(key=lambda x: Expr.__order_index(x))
 
-        if expr.render() != before: # has changed
+        if expr != before: # has changed
             return Step(expr, StepType.REORDER)
 
     @staticmethod
@@ -296,7 +307,6 @@ class Expr(Symbol):
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
 e = Expr.AND("B","C", False)
 f = Expr.AND("B","C",False)
-print(e==f)
 
 for s in e.simplify():
     print(s)
