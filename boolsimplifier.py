@@ -71,6 +71,7 @@ class StepType(Enum):
     NULL_LAW=4
     INVERSE_LAW=5
     INVOLUTION_LAW=6
+    IDEMPOTENT_LAW=7
 
     @property
     def nice_name(self):
@@ -222,8 +223,9 @@ class Expr(Symbol):
             Expr.__simp_null,
             Expr.__simp_inverse,
 
+            Expr.__simp_involution,
             Expr.__simp_identity,
-            Expr.__simp_involution
+            Expr.__simp_idempotent
         ]
 
         # execute simplification methods and push steps when necessary
@@ -329,10 +331,24 @@ class Expr(Symbol):
             e = expr.inputs[0]
             if isinstance(e, Expr) and e.type == ExprType.NOT:
                 return Step(e.inputs[0].clone(),StepType.INVOLUTION_LAW)
+
+    @staticmethod
+    def __simp_idempotent(expr):
+        # rebuild inputs, without duplicates (this law works same on OR/AND)
+        new_inputs = []
+        for inp in expr.inputs:
+            if inp not in new_inputs:
+                new_inputs.append(inp.clone())
+
+        if len(new_inputs) > 1:
+            return Step(Expr(expr.type,*new_inputs), StepType.IDEMPOTENT_LAW)
+        else:
+            return Step(new_inputs[0], StepType.IDEMPOTENT_LAW)
+
     # endregion
 
 if __name__ == '__main__':
-    e = Expr.NOT(Expr.NOT('A'))
+    e = Expr.AND("A","A")
 
     for s in e.simplify():
         print(s)

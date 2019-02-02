@@ -32,5 +32,8 @@ class TestBoolSimplifier(unittest.TestCase):
         # involution
         self.assertSimplified(Expr.NOT(Expr.NOT('A')),Variable('A'))
 
+        # idempotent
+        self.assertSimplified(Expr.AND("A", "A"),Variable("A"))
+
 if __name__ == '__main__':
     unittest.main()
