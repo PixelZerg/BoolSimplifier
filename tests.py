@@ -29,5 +29,8 @@ class TestBoolSimplifier(unittest.TestCase):
         # inverse
         self.assertSimplified(Expr.AND("B","C",Expr.NOT("B")), Constant(False))
 
+        # involution
+        self.assertSimplified(Expr.NOT(Expr.NOT('A')),Variable('A'))
+
 if __name__ == '__main__':
     unittest.main()

@@ -70,6 +70,7 @@ class StepType(Enum):
     IDENTITY_LAW=3
     NULL_LAW=4
     INVERSE_LAW=5
+    INVOLUTION_LAW=6
 
     @property
     def nice_name(self):
@@ -222,6 +223,7 @@ class Expr(Symbol):
             Expr.__simp_inverse,
 
             Expr.__simp_identity,
+            Expr.__simp_involution
         ]
 
         # execute simplification methods and push steps when necessary
@@ -301,7 +303,6 @@ class Expr(Symbol):
     @staticmethod
     def __simp_null(expr):
         search = expr.type == ExprType.OR
-
         for inp in expr.inputs:
             if isinstance(inp, Constant) and inp.value == search:
                 # no need to keep iterating
@@ -318,10 +319,20 @@ class Expr(Symbol):
                         # because of Null law, now the entire thing can be simplified
                         # no need to keep iterating
                         return Step(Constant(expr.type == ExprType.OR), StepType.INVERSE_LAW)
+
+    @staticmethod
+    def __simp_involution(expr):
+        """
+        AKA: Double Negation Law
+        """
+        if expr.type == ExprType.NOT:
+            e = expr.inputs[0]
+            if isinstance(e, Expr) and e.type == ExprType.NOT:
+                return Step(e.inputs[0].clone(),StepType.INVOLUTION_LAW)
     # endregion
 
-# e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
-e = Expr.AND("B","C",Expr.NOT("B"))
+if __name__ == '__main__':
+    e = Expr.NOT(Expr.NOT('A'))
 
-for s in e.simplify():
-    print(s)
+    for s in e.simplify():
+        print(s)
