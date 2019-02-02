@@ -340,10 +340,11 @@ class Expr(Symbol):
             if inp not in new_inputs:
                 new_inputs.append(inp.clone())
 
-        if len(new_inputs) > 1:
-            return Step(Expr(expr.type,*new_inputs), StepType.IDEMPOTENT_LAW)
-        else:
-            return Step(new_inputs[0], StepType.IDEMPOTENT_LAW)
+        if new_inputs != expr.inputs:
+            if len(new_inputs) > 1:
+                return Step(Expr(expr.type,*new_inputs), StepType.IDEMPOTENT_LAW)
+            else:
+                return Step(new_inputs[0], StepType.IDEMPOTENT_LAW)
 
     # endregion
 
