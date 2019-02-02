@@ -69,6 +69,7 @@ class StepType(Enum):
     REORDER=2
     IDENTITY_LAW=3
     NULL_LAW=4
+    INVERSE_LAW=5
 
     @property
     def nice_name(self):
