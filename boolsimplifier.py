@@ -217,7 +217,10 @@ class Expr(Symbol):
 
         simp_methods = [
             Expr.__simp_reorder,
+
             Expr.__simp_null,
+            Expr.__simp_inverse,
+
             Expr.__simp_identity,
         ]
 
@@ -303,11 +306,22 @@ class Expr(Symbol):
             if isinstance(inp, Constant) and inp.value == search:
                 # no need to keep iterating
                 return Step(Constant(search), StepType.NULL_LAW)
+
+    @staticmethod
+    def __simp_inverse(expr):
+        for inp1 in expr.inputs:
+            if isinstance(inp1, Expr) and inp1.type == ExprType.NOT:
+                e1 = inp1.inputs[0]
+                for inp2 in expr.inputs:
+                    if inp2 == e1:
+                        # inp1 is an inverted version of inp2
+                        # because of Null law, now the entire thing can be simplified
+                        # no need to keep iterating
+                        return Step(Constant(expr.type == ExprType.OR), StepType.INVERSE_LAW)
     # endregion
 
 # e = Expr.NOT(Expr.OR('A',Expr.AND('B','C',True)))
-e = Expr.AND("B","C", False)
-f = Expr.AND("B","C",False)
+e = Expr.AND("B","C",Expr.NOT("B"))
 
 for s in e.simplify():
     print(s)

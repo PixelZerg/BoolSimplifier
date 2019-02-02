@@ -13,7 +13,10 @@ class TestBoolSimplifier(unittest.TestCase):
         self.assertEqual(Expr.AND("B", "C", False), Expr.AND("B", "C", False))
         self.assertNotEqual(Expr.AND("B", "C", False), Expr.AND(False, "B", "C"))
 
+        # todo test initialisation warnings/exceptions
+
     def test_simp(self):
+        # todo add OR variants too
         # reorder
         self.assertSimplified(Expr.AND("D", "B", "C"), Expr.AND("B", "C", "D"))
 
@@ -22,6 +25,9 @@ class TestBoolSimplifier(unittest.TestCase):
 
         # identity
         self.assertSimplified(Expr.AND("C", "B", True), Expr.AND("B", "C"))
+
+        # inverse
+        self.assertSimplified(Expr.AND("B","C",Expr.NOT("B")), Constant(False))
 
 if __name__ == '__main__':
     unittest.main()
