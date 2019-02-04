@@ -16,24 +16,28 @@ class TestBoolSimplifier(unittest.TestCase):
         # todo test initialisation warnings/exceptions
 
     def test_simp(self):
-        # todo add OR variants too
         # reorder
         self.assertSimplified(Expr.AND("D", "B", "C"), Expr.AND("B", "C", "D"))
+        self.assertSimplified(Expr.OR("D", "B", "C"), Expr.OR("B", "C", "D"))
 
         # null
         self.assertSimplified(Expr.AND("B", "C", False),Constant(False))
+        self.assertSimplified(Expr.OR("B", "C", True),Constant(True))
 
         # identity
         self.assertSimplified(Expr.AND("C", "B", True), Expr.AND("B", "C"))
+        self.assertSimplified(Expr.OR("C", "B", False), Expr.OR("B", "C"))
 
         # inverse
         self.assertSimplified(Expr.AND("B","C",Expr.NOT("B")), Constant(False))
+        self.assertSimplified(Expr.OR("B","C",Expr.NOT("B")), Constant(True))
 
         # involution
         self.assertSimplified(Expr.NOT(Expr.NOT('A')),Variable('A'))
 
         # idempotent
         self.assertSimplified(Expr.AND("A", "A"),Variable("A"))
+        self.assertSimplified(Expr.OR("A", "A"),Variable("A"))
 
 if __name__ == '__main__':
     unittest.main()
