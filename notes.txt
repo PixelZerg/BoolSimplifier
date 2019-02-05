@@ -1,0 +1,2 @@
+internally, simplifier has no knowledge of brackets - in the scope of this project, brackets are just a notational construct to change/make explicit the order of operations
+big prob: some methods are two-way. Which one to use? Should create forks and traverse graph - breadth first or depth first or other? optimisation? visualisation?
