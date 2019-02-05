@@ -215,7 +215,16 @@ class Expr(Symbol):
         # init steps list (including current state as first step)
         steps:List[Step] = [Step(self.clone(), StepType.INPUT)]
 
-        # todo recursive simp inputs here
+        # recursively simplify inputs
+        for i, inp in enumerate(self.inputs):
+            if isinstance(inp, Expr):
+                for step in inp.simplify():
+                    # get all steps in the simplification of sub-expression
+                    if step.step_type != StepType.INPUT:
+                        new_sym = self.clone()
+                        new_sym.inputs[i] = step.sym
+                        # new step: copy current expression but sub in step of sub-expression
+                        steps.append(Step(new_sym,step.step_type))
 
         simp_methods = [
             Expr.__simp_reorder,
@@ -349,7 +358,7 @@ class Expr(Symbol):
     # endregion
 
 if __name__ == '__main__':
-    e = Expr.AND("A","A")
+    e = Expr.OR(Expr.NOT("A"),Expr.AND("A","A"))
 
     for s in e.simplify():
         print(s)
